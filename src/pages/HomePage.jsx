@@ -51,7 +51,7 @@ export function HomePage() {
         <div className="absolute left-1/2 top-6 h-44 w-[72rem] -translate-x-1/2 rounded-full bg-indigo-300/20 blur-3xl" />
       </div>
 
-      <main className="mx-auto flex h-full w-full max-w-[1200px] flex-col justify-center p-3 md:p-4">
+      <main className="relative mx-auto flex h-full w-full max-w-[1200px] flex-col items-center justify-center p-3 md:p-4">
         <AnimatePresence>
           {flashClass && (
             <motion.div
@@ -122,71 +122,72 @@ export function HomePage() {
           )}
         </AnimatePresence>
 
-        <motion.header initial={{ y: -12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mb-3">
-          <ScoreBoard
-            scores={{
-              ...state.scores,
-              teamNameA: state.teamNames.A,
-              teamNameB: state.teamNames.B,
-            }}
-            onAwardTeam={actions.awardRevealedToTeam}
-            revealedTotal={revealedTotal}
-            buzzedTeam={state.activeTeam}
-          />
-        </motion.header>
+        <div className="w-full">
+          <motion.header initial={{ y: -12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mb-3 w-full">
+            <ScoreBoard
+              scores={{
+                ...state.scores,
+                teamNameA: state.teamNames.A,
+                teamNameB: state.teamNames.B,
+              }}
+              onAwardTeam={actions.awardRevealedToTeam}
+              revealedTotal={revealedTotal}
+              buzzedTeam={state.activeTeam}
+            />
+          </motion.header>
 
-        <div className="flex flex-1 flex-col gap-3 overflow-hidden">
-          <section className="flex flex-col items-center justify-center gap-2">
-            <div className="flex items-center justify-center gap-3">
-              {Array.from({ length: 3 }, (_, index) => {
-                const active = state.activeTeam ? index < state.errors[state.activeTeam] : false;
-                return (
-                  <div
-                    key={index}
-                    className={`flex h-14 w-14 items-center justify-center rounded-full border-4 text-3xl font-black ${
-                      active ? 'border-red-400 text-red-400' : 'border-red-900/70 text-red-900/70'
-                    }`}
-                  >
-                    ×
-                  </div>
-                );
-              })}
-            </div>
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <Badge className="bg-[#25345f] text-white shadow-none">
-                Equipe active: {activeTeamName ?? 'Aucune'}
-              </Badge>
-              {ownerTeamName && (
-                <Badge className="bg-[#1f2b4d] text-white shadow-none">
-                  Equipe initiale: {ownerTeamName}
+          <div className="flex w-full flex-col gap-3">
+            <section className="flex flex-col items-center justify-center gap-2">
+              <div className="flex items-center justify-center gap-3">
+                {Array.from({ length: 3 }, (_, index) => {
+                  const active = state.activeTeam ? index < state.errors[state.activeTeam] : false;
+                  return (
+                    <div
+                      key={index}
+                      className={`flex h-14 w-14 items-center justify-center rounded-full border-4 text-3xl font-black ${
+                        active ? 'border-red-400 text-red-400' : 'border-red-900/70 text-red-900/70'
+                      }`}
+                    >
+                      ×
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <Badge className="bg-[#25345f] text-white shadow-none">
+                  Equipe active: {activeTeamName ?? 'Aucune'}
                 </Badge>
-              )}
-              {state.stealMode && <Badge className="bg-red-600 text-white shadow-none">VOL EN COURS</Badge>}
-            </div>
-            <Badge className="bg-white text-black shadow-none">Chrono: {timerSeconds}s</Badge>
-          </section>
+                {ownerTeamName && (
+                  <Badge className="bg-[#1f2b4d] text-white shadow-none">
+                    Equipe initiale: {ownerTeamName}
+                  </Badge>
+                )}
+                {state.stealMode && <Badge className="bg-red-600 text-white shadow-none">VOL EN COURS</Badge>}
+              </div>
+              <Badge className="bg-white text-black shadow-none">Chrono: {timerSeconds}s</Badge>
+            </section>
 
-          <AnimatePresence mode="wait">
-            <motion.section
-              key={state.currentRoundIndex}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.2 }}
-              className="min-h-0 flex-1"
-            >
-              <AnswersBoard
-                question={currentRound.question}
-                answers={currentRound.answers}
-                revealedTotal={revealedTotal}
-                onToggleAnswer={actions.toggleAnswer}
-                compact
-              />
-            </motion.section>
-          </AnimatePresence>
+            <AnimatePresence mode="wait">
+              <motion.section
+                key={state.currentRoundIndex}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <AnswersBoard
+                  question={currentRound.question}
+                  answers={currentRound.answers}
+                  revealedTotal={revealedTotal}
+                  onToggleAnswer={actions.toggleAnswer}
+                  compact
+                />
+              </motion.section>
+            </AnimatePresence>
+          </div>
         </div>
 
-        <footer className="mt-2 text-center text-xs text-slate-300/80 md:text-sm">
+        <footer className="pointer-events-none fixed bottom-1 left-0 right-0 z-[95] text-center text-xs text-slate-300/80 md:text-sm">
           © {currentYear} Tous droits réservés • Application créée par Said MOHAMED
         </footer>
       </main>
