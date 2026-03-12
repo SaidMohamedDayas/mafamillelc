@@ -45,13 +45,13 @@ export function HomePage() {
   const ownerTeamName = state.ownerTeam ? state.teamNames[state.ownerTeam] : null;
 
   return (
-    <div className="h-screen overflow-hidden bg-background text-foreground">
+    <div className="min-h-screen overflow-y-auto bg-background text-foreground md:h-screen md:overflow-hidden">
       <div className="fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(180deg,#1c3486_0%,#0a1f5b_38%,#02123f_65%,#010712_100%)]" />
         <div className="absolute left-1/2 top-6 h-44 w-[72rem] -translate-x-1/2 rounded-full bg-indigo-300/20 blur-3xl" />
       </div>
 
-      <main className="relative mx-auto flex h-full w-full max-w-[1200px] flex-col items-center justify-center p-3 md:p-4">
+      <main className="relative mx-auto flex min-h-screen w-full max-w-[1200px] flex-col items-center justify-start p-3 md:h-full md:min-h-0 md:justify-center md:p-4">
         <AnimatePresence>
           {flashClass && (
             <motion.div
@@ -187,7 +187,7 @@ export function HomePage() {
           </div>
         </div>
 
-        <footer className="pointer-events-none fixed bottom-1 left-0 right-0 z-[95] text-center text-xs text-slate-300/80 md:text-sm">
+        <footer className="mt-2 text-center text-xs text-slate-300/80 md:pointer-events-none md:fixed md:bottom-1 md:left-0 md:right-0 md:z-[95] md:text-sm">
           © {currentYear} Tous droits réservés • Application créée par Said MOHAMED
         </footer>
       </main>

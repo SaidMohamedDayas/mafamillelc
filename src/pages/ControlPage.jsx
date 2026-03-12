@@ -120,12 +120,12 @@ export function ControlPage() {
   }, [activeTeamName, ownerTeamName, state.stealMode]);
 
   return (
-    <div className="h-screen overflow-hidden bg-background text-foreground">
+    <div className="min-h-screen overflow-x-hidden overflow-y-auto bg-background text-foreground md:h-screen md:overflow-hidden">
       <div className="fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(180deg,#1c3486_0%,#0a1f5b_38%,#02123f_65%,#010712_100%)]" />
       </div>
 
-      <main className="mx-auto flex h-full w-full max-w-[1180px] flex-col justify-center p-2 md:p-3">
+      <main className="mx-auto flex min-h-screen w-full max-w-[1180px] min-w-0 flex-col justify-start p-2 md:h-full md:min-h-0 md:justify-center md:p-3">
         <div className="grid h-full min-h-0 grid-rows-[auto_auto_auto_auto_minmax(0,1fr)_auto_auto] gap-2">
           <section className="rounded-xl border border-white/10 bg-[#0f1638]/85 px-3 py-2">
             <SectionTitle>1. Equipe active</SectionTitle>
@@ -135,7 +135,7 @@ export function ControlPage() {
                 {ownerTeamName && <Badge className="bg-[#1f2b4d] text-white shadow-none">Equipe initiale: {ownerTeamName}</Badge>}
                 {state.stealMode && <Badge className="bg-red-600 text-white shadow-none">VOL EN COURS</Badge>}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex w-full flex-wrap items-center justify-center gap-2 sm:w-auto sm:justify-end">
                 <Button
                   variant="secondary"
                   size="sm"
@@ -163,7 +163,7 @@ export function ControlPage() {
 
           <section className="rounded-xl border border-white/10 bg-[#0f1638]/85 px-3 py-2">
             <SectionTitle>2. Buzzer</SectionTitle>
-            <div className="mt-1 grid grid-cols-2 gap-2">
+            <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <Button
                 variant={state.buzzedTeam === 'A' ? 'danger' : 'secondary'}
                 className={`h-10 text-sm font-bold md:text-base ${
@@ -189,7 +189,7 @@ export function ControlPage() {
 
           <section className="rounded-xl border border-white/10 bg-[#0f1638]/85 px-3 py-2">
             <SectionTitle>3. Chrono</SectionTitle>
-            <div className="mt-1 grid grid-cols-3 gap-2">
+            <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-3">
               <Button
                 variant="secondary"
                 className="h-10 bg-white text-black hover:bg-white/90"
@@ -214,7 +214,7 @@ export function ControlPage() {
 
           <section className="rounded-xl border border-white/10 bg-[#0f1638]/85 px-3 py-2">
             <SectionTitle>4. Erreurs</SectionTitle>
-            <div className="mt-1 grid grid-cols-2 gap-2">
+            <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <Button
                 variant="secondary"
                 onClick={handleError}
@@ -264,7 +264,7 @@ export function ControlPage() {
 
           <section className="rounded-xl border border-white/10 bg-[#0f1638]/85 px-3 py-2">
             <SectionTitle>6. Reset</SectionTitle>
-            <div className="mt-1 grid grid-cols-3 gap-2">
+            <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-3">
               <Button variant="secondary" className="h-10 bg-[#314472] text-white hover:bg-[#3b5186]" onClick={actions.resetBuzzer}>
                 reset buzzer
               </Button>
@@ -279,14 +279,14 @@ export function ControlPage() {
 
           <section className="rounded-xl border border-white/10 bg-[#0f1638]/85 px-3 py-2">
             <SectionTitle>7. Mode edition</SectionTitle>
-            <div className="mt-1 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
+            <div className="mt-1 flex flex-col items-stretch gap-2 md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button variant="secondary" className="h-9 bg-[#33477f] px-4 text-white hover:bg-[#41568f]">
                   <Settings2 className="mr-2 h-4 w-4" /> Mode edition
                 </Button>
                 <Switch checked={state.isEditMode} onCheckedChange={actions.setIsEditMode} />
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Button variant="secondary" className="h-9 bg-[#24325e] text-white hover:bg-[#314170]" onClick={actions.addAnswer} disabled={!state.isEditMode}>
                   + reponse
                 </Button>
@@ -299,7 +299,7 @@ export function ControlPage() {
         </div>
       </main>
 
-      <footer className="pointer-events-none fixed bottom-1 left-0 right-0 z-[95] text-center text-xs text-slate-300/80 md:text-sm">
+      <footer className="mt-2 text-center text-xs text-slate-300/80 md:pointer-events-none md:fixed md:bottom-1 md:left-0 md:right-0 md:z-[95] md:text-sm">
         © {currentYear} Tous droits réservés • Application créée par Said MOHAMED
       </footer>
 
