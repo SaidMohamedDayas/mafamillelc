@@ -24,20 +24,7 @@ function createInitialState() {
 }
 
 function loadState() {
-  if (typeof window === 'undefined') return createInitialState();
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return createInitialState();
-    const parsed = JSON.parse(raw);
-    return {
-      ...createInitialState(),
-      ...parsed,
-      teamNames: { ...createInitialState().teamNames, ...(parsed.teamNames || {}) },
-      events: { buzz: null, error: null, roundWin: null, gameWin: null, ...(parsed.events || {}) },
-    };
-  } catch {
-    return createInitialState();
-  }
+  return createInitialState();
 }
 
 function getOtherTeam(team) {

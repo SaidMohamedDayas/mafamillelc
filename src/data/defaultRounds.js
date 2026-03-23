@@ -1,122 +1,258 @@
 export const defaultRounds = [
   {
-    question: "ALSH: Que vérifie-t-on en premier à l'arrivée des enfants ?",
+    question:
+      "Quelles sont les responsabilités du directeur avant d’organiser une activité baignade ou jeux d’eau ?",
     answers: [
-      { text: 'La feuille de présence', points: 32, revealed: false },
-      { text: 'Les autorisations parentales', points: 24, revealed: false },
-      { text: 'L’état de santé signalé', points: 18, revealed: false },
-      { text: 'Les personnes autorisées au départ', points: 12, revealed: false },
-      { text: 'Le matériel personnel de l’enfant', points: 8, revealed: false },
+      {
+        text: "Vérifier les qualifications des encadrants",
+        points: 30,
+        revealed: false,
+      },
+      {
+        text: "Déclarer ou inscrire la sortie dans le projet / planning",
+        points: 25,
+        revealed: false,
+      },
+      { text: "Vérifier le taux d’encadrement", points: 20, revealed: false },
+      {
+        text: "Informer les familles ",
+        points: 15,
+        revealed: false,
+      },
+      { text: "Respect de la profondeur", points: 10, revealed: false },
     ],
   },
   {
-    question: 'Sécurité: Citez un réflexe essentiel avant une sortie extérieure.',
+    question:
+      "Quelles sont les responsabilités du directeur concernant l’hygiène alimentaire ?",
     answers: [
-      { text: 'Compter les enfants', points: 30, revealed: false },
-      { text: 'Rappeler les consignes', points: 22, revealed: false },
-      { text: 'Prévoir une trousse de secours', points: 16, revealed: false },
-      { text: 'Vérifier la météo', points: 13, revealed: false },
-      { text: 'Prendre les contacts d’urgence', points: 11, revealed: false },
+      {
+        text: "Mettre en place des procédures d’hygiène",
+        points: 30,
+        revealed: false,
+      },
+      { text: "Sensibiliser et former l’équipe", points: 25, revealed: false },
+      {
+        text: "Vérifier les conditions de stockage des aliments",
+        points: 20,
+        revealed: false,
+      },
+      {
+        text: "Prendre en compte les PAI et allergies",
+        points: 15,
+        revealed: false,
+      },
+      {
+        text: "Anticiper les risques lors des pique-niques",
+        points: 10,
+        revealed: false,
+      },
     ],
   },
   {
-    question: 'Hygiène: Quelle règle est indispensable avant le repas ? ',
+    question:
+      "Quelle est l’erreur la plus fréquente lors d’un pique-nique ALSH ?",
     answers: [
-      { text: 'Lavage des mains', points: 40, revealed: false },
-      { text: 'Nettoyer les surfaces', points: 18, revealed: false },
-      { text: 'Attacher les cheveux longs', points: 14, revealed: false },
-      { text: 'Vérifier la chaîne du froid', points: 12, revealed: false },
-      { text: 'Port de gants si nécessaire', points: 9, revealed: false },
+      { text: "Les mains ne sont pas lavées", points: 30, revealed: false },
+      {
+        text: "La chaîne du froid n’est pas respectée",
+        points: 25,
+        revealed: false,
+      },
+      {
+        text: "Les allergies ne sont pas vérifiées",
+        points: 20,
+        revealed: false,
+      },
+      { text: "Les poubelles sont oubliées", points: 15, revealed: false },
+      {
+        text: "Les animateurs mangent avant les enfants 😅",
+        points: 10,
+        revealed: false,
+      },
     ],
   },
   {
-    question: 'Sorties: Quel document ne faut-il jamais oublier ? ',
+    question:
+      "Quels documents doivent obligatoirement être affichés dans un accueil de loisirs ?",
     answers: [
-      { text: 'La liste des enfants', points: 31, revealed: false },
-      { text: 'Les fiches sanitaires', points: 23, revealed: false },
-      { text: 'Les autorisations de sortie', points: 20, revealed: false },
-      { text: 'Le planning de la journée', points: 11, revealed: false },
-      { text: 'Les numéros d’urgence', points: 9, revealed: false },
+      {
+        text: "Les numéros d’urgence (pompiers, SAMU…)",
+        points: 30,
+        revealed: false,
+      },
+      { text: "Le plan d’évacuation incendie", points: 25, revealed: false },
+      {
+        text: "Le projet pédagogique de la structure",
+        points: 20,
+        revealed: false,
+      },
+      { text: "Les menus de la semaine", points: 15, revealed: false },
+      {
+        text: "Les consignes de sécurité / conduite à tenir",
+        points: 10,
+        revealed: false,
+      },
     ],
   },
   {
-    question: 'Incendie: Quelle est la première action en cas d’alarme ? ',
+    question:
+      "Quelles sont les missions du directeur pour sécuriser une sortie ALSH ?",
     answers: [
-      { text: 'Évacuer calmement', points: 35, revealed: false },
-      { text: 'Compter les enfants au point de rassemblement', points: 22, revealed: false },
-      { text: 'Alerter les secours', points: 16, revealed: false },
-      { text: 'Suivre le plan d’évacuation', points: 14, revealed: false },
-      { text: 'Ne pas retourner dans le bâtiment', points: 8, revealed: false },
+      { text: "Valider la sortie", points: 30, revealed: false },
+      {
+        text: "Vérifier le transport et les assurances",
+        points: 25,
+        revealed: false,
+      },
+      { text: "Vérifier le taux d’encadrement", points: 20, revealed: false },
+      { text: "Inscription obligatoire", points: 15, revealed: false },
+      {
+        text: "Anticiper les risques (météo, sécurité)",
+        points: 10,
+        revealed: false,
+      },
     ],
   },
   {
-    question: 'Animation: Quelle qualité fait un bon animateur ? ',
+    question:
+      "Quel est le rôle du directeur dans l’organisation d’un exercice incendie ?",
     answers: [
-      { text: 'L’écoute', points: 26, revealed: false },
-      { text: 'La créativité', points: 22, revealed: false },
-      { text: 'La patience', points: 18, revealed: false },
-      { text: 'Le sens de l’organisation', points: 14, revealed: false },
-      { text: 'L’énergie positive', points: 12, revealed: false },
+      {
+        text: "Organiser et planifier l’exercice",
+        points: 30,
+        revealed: false,
+      },
+      {
+        text: "Expliquer les procédures à l’équipe",
+        points: 25,
+        revealed: false,
+      },
+      { text: "Vérifier les issues de secours ", points: 20, revealed: false },
+      {
+        text: "Analyser le déroulement après l'exercice",
+        points: 15,
+        revealed: false,
+      },
+      { text: "Mettre à jour les procédures", points: 10, revealed: false },
     ],
   },
   {
-    question: 'HACCP: Quel point est critique lors d’un service alimentaire ? ',
+    question:
+      "Quelles sont les missions du directeur pour accompagner un stagiaire BAFA ?",
     answers: [
-      { text: 'Respecter les températures', points: 30, revealed: false },
-      { text: 'Éviter les contaminations croisées', points: 24, revealed: false },
-      { text: 'Tracer les denrées', points: 16, revealed: false },
-      { text: 'Respecter les DLC', points: 12, revealed: false },
-      { text: 'Désinfecter les ustensiles', points: 10, revealed: false },
+      { text: "Présenter le projet pédagogique", points: 30, revealed: false },
+      {
+        text: "Fixer des objectifs ",
+        points: 25,
+        revealed: false,
+      },
+      {
+        text: "Accompagner la prise de responsabilités",
+        points: 20,
+        revealed: false,
+      },
+      { text: "Organiser des temps de bilan", points: 15, revealed: false },
+      { text: "Évaluer le stage BAFA", points: 10, revealed: false },
     ],
   },
   {
-    question: 'Premiers secours: Que faire face à une petite coupure ? ',
+    question:
+      "Selon vous, quels sont les défis majeurs d’un directeur ALSH pendant l’été ?",
     answers: [
-      { text: 'Nettoyer la plaie', points: 30, revealed: false },
-      { text: 'Désinfecter', points: 24, revealed: false },
-      { text: 'Mettre un pansement propre', points: 20, revealed: false },
-      { text: 'Porter des gants', points: 10, revealed: false },
-      { text: 'Surveiller l’évolution', points: 9, revealed: false },
+      { text: "Gestion de l’équipe", points: 30 * 2, revealed: false },
+      { text: "Sécurité des enfants", points: 25 * 2, revealed: false },
+      {
+        text: "Organisation des activités et sorties",
+        points: 20 * 2,
+        revealed: false,
+      },
+      { text: "Gestion des imprévus", points: 15 * 2, revealed: false },
+      { text: "Relation avec les familles", points: 10 * 2, revealed: false },
     ],
   },
   {
-    question: 'Rôle de l’animateur: Quelle mission est prioritaire ? ',
+    question:
+      "Quelle est la première chose à faire lorsqu’un incident se produit dans un centre de loisirs ?",
     answers: [
-      { text: 'Garantir la sécurité physique et affective', points: 34, revealed: false },
-      { text: 'Favoriser le vivre-ensemble', points: 22, revealed: false },
-      { text: 'Proposer des activités adaptées', points: 18, revealed: false },
-      { text: 'Accompagner l’autonomie', points: 12, revealed: false },
-      { text: 'Communiquer avec les familles', points: 8, revealed: false },
+      {
+        text: "Sécuriser l’enfant ou la situation",
+        points: 30,
+        revealed: false,
+      },
+      {
+        text: "Prévenir les secours si nécessaire",
+        points: 25,
+        revealed: false,
+      },
+      {
+        text: "Informer la direction / hiérarchie",
+        points: 20,
+        revealed: false,
+      },
+      { text: "Prévenir les parents", points: 15, revealed: false },
+      {
+        text: "Rédiger une fiche ou un rapport d’incident",
+        points: 10,
+        revealed: false,
+      },
     ],
   },
   {
-    question: 'Sécurité piscine: Quel encadrement est indispensable ? ',
+    question:
+      "Quelles sont les actions qui favorisent l’accueil d’un enfant en situation de handicap en ALSH ?",
     answers: [
-      { text: 'Taux d’encadrement réglementaire', points: 28, revealed: false },
-      { text: 'Brief de sécurité avant entrée', points: 20, revealed: false },
-      { text: 'Comptage fréquent des enfants', points: 18, revealed: false },
-      { text: 'Présence d’un surveillant qualifié', points: 14, revealed: false },
-      { text: 'Zone de baignade délimitée', points: 12, revealed: false },
+      { text: "Adapter les activités", points: 30, revealed: false },
+      { text: "Échanger avec la famille", points: 25, revealed: false },
+      {
+        text: "Sensibiliser l’équipe d’animation",
+        points: 20,
+        revealed: false,
+      },
+      {
+        text: "Mettre en place un PAI ou un projet d’accueil personnalisé",
+        points: 15,
+        revealed: false,
+      },
+      {
+        text: "Travailler avec des partenaires spécialisés",
+        points: 10,
+        revealed: false,
+      },
     ],
   },
   {
-    question: 'Hygiène collective: Quel geste limite le plus les microbes ? ',
+    question:
+      "Quels sont les points de sécurité qu’un directeur vérifie régulièrement dans un centre ?",
     answers: [
-      { text: 'Lavage des mains régulier', points: 38, revealed: false },
-      { text: 'Nettoyage des objets partagés', points: 20, revealed: false },
-      { text: 'Aération des locaux', points: 14, revealed: false },
-      { text: 'Mouchoirs à usage unique', points: 12, revealed: false },
-      { text: 'Gestion du linge souillé', points: 9, revealed: false },
+      { text: "Les issues de secours", points: 30, revealed: false },
+      { text: "Les trousses de secours", points: 25, revealed: false },
+      { text: "La conformité des locaux", points: 20, revealed: false },
+      { text: "La présence des listes d’enfants", points: 15, revealed: false },
+      {
+        text: "Le matériel utilisé par les enfants",
+        points: 10,
+        revealed: false,
+      },
     ],
   },
   {
-    question: 'Sortie nature: Quel risque doit être anticipé ? ',
+    question:
+      "Qu’est-ce qui est essentiel pour instaurer une relation de confiance avec les familles ?",
     answers: [
-      { text: 'Perte d’un enfant', points: 25, revealed: false },
-      { text: 'Déshydratation', points: 20, revealed: false },
-      { text: 'Piqûres/insectes', points: 18, revealed: false },
-      { text: 'Coup de soleil', points: 14, revealed: false },
-      { text: 'Chute sur terrain accidenté', points: 13, revealed: false },
+      { text: "Communiquer régulièrement", points: 30, revealed: false },
+      { text: "Être disponible à l’accueil", points: 25, revealed: false },
+      { text: "Expliquer le projet pédagogique", points: 20, revealed: false },
+      {
+        text: "Informer rapidement en cas de problème",
+        points: 15,
+        revealed: false,
+      },
+      {
+        text: "Valoriser les activités des enfants",
+        points: 10,
+        revealed: false,
+      },
     ],
   },
 ];
