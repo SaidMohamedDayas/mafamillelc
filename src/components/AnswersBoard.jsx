@@ -3,11 +3,12 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 function AnswerItem({ answer, index, onToggle, compact }) {
+  const Item = onToggle ? motion.button : motion.div;
   return (
-    <motion.button
-      whileHover={{ y: -1 }}
-      whileTap={{ scale: 0.99 }}
-      onClick={() => onToggle(index)}
+    <Item
+      whileHover={onToggle ? { y: -1 } : undefined}
+      whileTap={onToggle ? { scale: 0.99 } : undefined}
+      onClick={onToggle ? () => onToggle(index) : undefined}
       className={`group relative grid w-full items-center overflow-hidden rounded-r-2xl border border-yellow-400/95 bg-yellow-400 text-left transition ${
         compact ? 'grid-cols-[60px_1fr_64px]' : 'grid-cols-[80px_1fr_80px]'
       } ${
@@ -39,7 +40,7 @@ function AnswerItem({ answer, index, onToggle, compact }) {
       >
         {answer.revealed ? answer.points : '?'}
       </div>
-    </motion.button>
+    </Item>
   );
 }
 

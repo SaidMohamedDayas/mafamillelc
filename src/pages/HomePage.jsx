@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ScoreBoard } from '@/components/ScoreBoard';
 import { AnswersBoard } from '@/components/AnswersBoard';
+import { ProjectionFrame } from '@/components/ProjectionFrame';
+import { FullscreenPrompt } from '@/components/FullscreenPrompt';
 import { Badge } from '@/components/ui/badge';
 import { useGame } from '@/context/GameContext';
 
@@ -9,7 +11,7 @@ const ROUND_WIN_POPUP_MS = 2000;
 const FINAL_POPUP_DELAY_AFTER_ROUND_MS = 3000;
 
 export function HomePage() {
-  const { state, currentRound, revealedTotal, timerSeconds, actions } = useGame();
+  const { state, currentRound, revealedTotal, timerSeconds } = useGame();
   const currentYear = new Date().getFullYear();
 
   const now = Date.now();
@@ -52,6 +54,13 @@ export function HomePage() {
       </div>
 
       <main className="relative mx-auto flex min-h-screen w-full max-w-[1200px] flex-col items-center justify-start p-3 md:h-full md:min-h-0 md:justify-center md:p-4">
+        <FullscreenPrompt requested={state.showFullscreenPrompt} />
+        {state.screenMode === 'waiting' ? (
+          <section className="my-auto text-center" aria-label="Écran d’attente">
+            <h1 className="font-display text-5xl font-black text-yellow-300 md:text-7xl">Ma Famille LC</h1>
+            <p className="mt-6 text-2xl text-white md:text-4xl">La partie reprend dans un instant</p>
+          </section>
+        ) : (<>
         <AnimatePresence>
           {flashClass && (
             <motion.div
@@ -73,7 +82,7 @@ export function HomePage() {
                 <p className="font-display text-6xl font-black uppercase tracking-wide text-yellow-300 md:text-8xl">
                   {state.teamNames[state.events.buzz.team]}
                 </p>
-                <p className="mt-2 font-display text-4xl font-bold text-yellow-200 md:text-6xl">a buzzé</p>
+                <p className="mt-2 font-display text-4xl font-bold text-yellow-200 md:text-6xl">a la main</p>
               </div>
             </motion.div>
           )}
@@ -122,7 +131,7 @@ export function HomePage() {
           )}
         </AnimatePresence>
 
-        <div className="w-full">
+        <ProjectionFrame>
           <motion.header initial={{ y: -12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="mb-3 w-full">
             <ScoreBoard
               scores={{
@@ -130,7 +139,6 @@ export function HomePage() {
                 teamNameA: state.teamNames.A,
                 teamNameB: state.teamNames.B,
               }}
-              onAwardTeam={actions.awardRevealedToTeam}
               revealedTotal={revealedTotal}
               buzzedTeam={state.activeTeam}
             />
@@ -179,14 +187,14 @@ export function HomePage() {
                   question={currentRound.question}
                   answers={currentRound.answers}
                   revealedTotal={revealedTotal}
-                  onToggleAnswer={actions.toggleAnswer}
                   compact
                 />
               </motion.section>
             </AnimatePresence>
           </div>
-        </div>
+        </ProjectionFrame>
 
+        </>)}
         <footer className="mt-2 text-center text-xs text-slate-300/80 md:pointer-events-none md:fixed md:bottom-1 md:left-0 md:right-0 md:z-[95] md:text-sm">
           © {currentYear} Tous droits réservés • Application créée par Said MOHAMED
         </footer>

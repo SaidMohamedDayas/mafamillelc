@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { RotateCcw, Settings2, Timer } from 'lucide-react';
+import { EventControls } from '@/components/EventControls';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,6 +17,7 @@ function useControlAudio() {
       if (!AudioContextClass) return null;
       audioContextRef.current = new AudioContextClass();
     }
+    if (audioContextRef.current.state === 'suspended') void audioContextRef.current.resume().catch(() => {});
     return audioContextRef.current;
   }
 
@@ -102,7 +104,6 @@ export function ControlPage() {
   }, [state.events?.roundWin?.id, playRoundWinSound]);
 
   function handleBuzz(team) {
-    if (state.buzzedTeam) return;
     actions.buzz(team);
   }
 
@@ -111,7 +112,8 @@ export function ControlPage() {
     actions.addError();
   }
 
-  const canAddError = state.activeTeam && state.errors[state.activeTeam] < (state.stealMode ? 1 : 3);
+  const roundClosed = Boolean(currentRound.award || currentRound.legacyReview);
+  const canAddError = !roundClosed && state.activeTeam && state.errors[state.activeTeam] < (state.stealMode ? 1 : 3);
 
   const teamStatus = useMemo(() => {
     if (!ownerTeamName) return activeTeamName;
@@ -120,13 +122,14 @@ export function ControlPage() {
   }, [activeTeamName, ownerTeamName, state.stealMode]);
 
   return (
-    <div className="min-h-screen overflow-x-hidden overflow-y-auto bg-background text-foreground md:h-screen md:overflow-hidden">
+    <div className="min-h-screen overflow-x-hidden overflow-y-auto bg-background text-foreground">
       <div className="fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute inset-0 bg-[linear-gradient(180deg,#1c3486_0%,#0a1f5b_38%,#02123f_65%,#010712_100%)]" />
       </div>
 
-      <main className="mx-auto flex min-h-screen w-full max-w-[1180px] min-w-0 flex-col justify-start p-2 md:h-full md:min-h-0 md:justify-center md:p-3">
-        <div className="grid h-full min-h-0 grid-rows-[auto_auto_auto_auto_minmax(0,1fr)_auto_auto] gap-2">
+      <main className="mx-auto flex min-h-screen w-full max-w-[1180px] min-w-0 flex-col justify-start p-2 md:p-3">
+        <div className="grid gap-2">
+          <EventControls />
           <section className="rounded-xl border border-white/10 bg-[#0f1638]/85 px-3 py-2">
             <SectionTitle>1. Equipe active</SectionTitle>
             <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
@@ -162,7 +165,7 @@ export function ControlPage() {
           </section>
 
           <section className="rounded-xl border border-white/10 bg-[#0f1638]/85 px-3 py-2">
-            <SectionTitle>2. Buzzer</SectionTitle>
+            <SectionTitle>2. Attribuer la main</SectionTitle>
             <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-2">
               <Button
                 variant={state.buzzedTeam === 'A' ? 'danger' : 'secondary'}
@@ -170,9 +173,9 @@ export function ControlPage() {
                   state.buzzedTeam === 'A' ? 'bg-red-600 text-white' : 'bg-red-600 text-white hover:bg-red-700'
                 }`}
                 onClick={() => handleBuzz('A')}
-                disabled={Boolean(state.buzzedTeam)}
+                disabled={roundClosed || state.stealMode}
               >
-                BUZZER {state.teamNames.A}
+                Main à {state.teamNames.A}
               </Button>
               <Button
                 variant={state.buzzedTeam === 'B' ? 'default' : 'secondary'}
@@ -180,9 +183,9 @@ export function ControlPage() {
                   state.buzzedTeam === 'B' ? 'bg-blue-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
                 }`}
                 onClick={() => handleBuzz('B')}
-                disabled={Boolean(state.buzzedTeam)}
+                disabled={roundClosed || state.stealMode}
               >
-                BUZZER {state.teamNames.B}
+                Main à {state.teamNames.B}
               </Button>
             </div>
           </section>
@@ -194,7 +197,7 @@ export function ControlPage() {
                 variant="secondary"
                 className="h-10 bg-white text-black hover:bg-white/90"
                 onClick={actions.startTimer}
-                disabled={timerSeconds <= 0 || state.timerEndsAt}
+                disabled={roundClosed || timerSeconds <= 0 || state.timerEndsAt !== null}
               >
                 <Timer className="mr-2 h-4 w-4" /> {timerSeconds}s
               </Button>
@@ -204,7 +207,7 @@ export function ControlPage() {
                 onClick={actions.stopTimer}
                 disabled={!state.timerEndsAt}
               >
-                Stop
+                Pause
               </Button>
               <Button variant="secondary" className="h-10 bg-[#314472] text-white hover:bg-[#3b5186]" onClick={actions.resetTimer}>
                 Reset
@@ -221,7 +224,7 @@ export function ControlPage() {
                 disabled={!canAddError}
                 className="h-10 bg-[#2c3a6d] text-white hover:bg-[#39497d]"
               >
-                Erreur equipe buzzee
+                Erreur équipe active
               </Button>
               <Button variant="secondary" onClick={actions.resetErrors} className="h-10 bg-white text-black hover:bg-white/90">
                 Reset erreurs
@@ -239,6 +242,7 @@ export function ControlPage() {
                 <button
                   key={index}
                   type="button"
+                  disabled={roundClosed || answer.revealed}
                   onClick={() => actions.toggleAnswer(index)}
                   className={`h-10 rounded-lg border px-2 text-left text-xs font-semibold transition ${
                     answer.revealed
@@ -255,7 +259,7 @@ export function ControlPage() {
                     </span>
                   </div>
                   <div className="mt-0.5 text-[10px] uppercase tracking-wide opacity-80">
-                    {answer.revealed ? 'Affichee sur Home' : 'Cliquez pour afficher sur Home'}
+                    {answer.revealed ? 'Révélée sur le plateau' : 'Cliquer pour révéler (masquée pendant l’attente)'}
                   </div>
                 </button>
               ))}
@@ -266,12 +270,12 @@ export function ControlPage() {
             <SectionTitle>6. Reset</SectionTitle>
             <div className="mt-1 grid grid-cols-1 gap-2 sm:grid-cols-3">
               <Button variant="secondary" className="h-10 bg-[#314472] text-white hover:bg-[#3b5186]" onClick={actions.resetBuzzer}>
-                reset buzzer
+                Libérer la main
               </Button>
-              <Button variant="secondary" className="h-10 bg-[#314472] text-white hover:bg-[#3b5186]" onClick={actions.resetCurrentRound}>
+              <Button variant="secondary" className="h-10 bg-[#314472] text-white hover:bg-[#3b5186]" onClick={() => { if (window.confirm('Réinitialiser cette manche ? Ses points attribués seront retirés du score, ses réponses seront masquées. Les textes seront conservés.')) actions.resetCurrentRound(true); }}>
                 <RotateCcw className="mr-1 h-4 w-4" /> reset manche
               </Button>
-              <Button variant="secondary" className="h-10 bg-[#314472] text-white hover:bg-[#3b5186]" onClick={actions.resetGame}>
+              <Button variant="secondary" className="h-10 bg-[#314472] text-white hover:bg-[#3b5186]" onClick={() => { if (window.confirm('Réinitialiser toute la partie ? Scores, réponses révélées et progression seront remis à zéro. Questions modifiées et noms seront conservés.')) actions.resetGame(true); }}>
                 <RotateCcw className="mr-1 h-4 w-4" /> reset complet
               </Button>
             </div>
@@ -281,10 +285,10 @@ export function ControlPage() {
             <SectionTitle>7. Mode edition</SectionTitle>
             <div className="mt-1 flex flex-col items-stretch gap-2 md:flex-row md:items-center md:justify-between">
               <div className="flex flex-wrap items-center gap-2">
-                <Button variant="secondary" className="h-9 bg-[#33477f] px-4 text-white hover:bg-[#41568f]">
+                <Button variant="secondary" className="h-9 bg-[#33477f] px-4 text-white hover:bg-[#41568f]" onClick={() => actions.setIsEditMode(true)}>
                   <Settings2 className="mr-2 h-4 w-4" /> Mode edition
                 </Button>
-                <Switch checked={state.isEditMode} onCheckedChange={actions.setIsEditMode} />
+                <Switch aria-label="Mode édition" checked={state.isEditMode} onCheckedChange={actions.setIsEditMode} />
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Button variant="secondary" className="h-9 bg-[#24325e] text-white hover:bg-[#314170]" onClick={actions.addAnswer} disabled={!state.isEditMode}>
@@ -305,7 +309,7 @@ export function ControlPage() {
 
       {state.isEditMode && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/65 p-2">
-          <div className="w-full max-w-[1080px] rounded-xl border border-white/20 bg-[#101833] p-3">
+          <div className="max-h-[90vh] w-full max-w-[1080px] overflow-y-auto rounded-xl border border-white/20 bg-[#101833] p-3">
             <div className="mb-2 flex items-center justify-between">
               <p className="text-sm font-semibold text-white">Edition rapide</p>
               <Button variant="secondary" size="sm" onClick={() => actions.setIsEditMode(false)}>
@@ -316,18 +320,21 @@ export function ControlPage() {
             <div className="grid gap-2 md:grid-cols-2">
               <input
                 className="h-9 rounded-lg border border-white/20 bg-black/35 px-3 text-sm text-white outline-none focus:border-yellow-300"
+                aria-label="Nom équipe A"
                 value={state.teamNames.A}
                 onChange={(event) => actions.setTeamName('A', event.target.value)}
                 placeholder="Nom equipe A"
               />
               <input
                 className="h-9 rounded-lg border border-white/20 bg-black/35 px-3 text-sm text-white outline-none focus:border-yellow-300"
+                aria-label="Nom équipe B"
                 value={state.teamNames.B}
                 onChange={(event) => actions.setTeamName('B', event.target.value)}
                 placeholder="Nom equipe B"
               />
               <input
                 className="h-9 rounded-lg border border-white/20 bg-black/35 px-3 text-sm text-white outline-none focus:border-yellow-300 md:col-span-2"
+                aria-label="Question"
                 value={currentRound.question}
                 onChange={(event) => actions.updateQuestion(event.target.value)}
               />
@@ -338,6 +345,8 @@ export function ControlPage() {
                 <div key={index} className="grid grid-cols-[1fr_90px] gap-2">
                   <input
                     className="h-8 rounded-lg border border-white/20 bg-black/35 px-3 text-sm text-white outline-none focus:border-yellow-300"
+                    aria-label={`Réponse ${index + 1}`}
+                    disabled={roundClosed}
                     value={answer.text}
                     onChange={(event) => actions.updateAnswerText(index, event.target.value)}
                   />
@@ -345,6 +354,9 @@ export function ControlPage() {
                     type="number"
                     min="0"
                     className="h-8 rounded-lg border border-white/20 bg-black/35 px-3 text-sm text-white outline-none focus:border-yellow-300"
+                    aria-label={`Points réponse ${index + 1}`}
+                    disabled={roundClosed}
+                    max="1000000" step="1"
                     value={answer.points}
                     onChange={(event) => actions.updateAnswerPoints(index, Number(event.target.value) || 0)}
                   />
@@ -378,8 +390,8 @@ export function ControlPage() {
               <Button
                 variant="danger"
                 size="sm"
-                onClick={actions.deleteCurrentRound}
-                disabled={state.rounds.length <= 1}
+                onClick={() => { if (window.confirm('Supprimer cette question ?')) actions.deleteCurrentRound(true); }}
+                disabled={roundClosed || state.rounds.length <= 1}
               >
                 Supprimer question
               </Button>
