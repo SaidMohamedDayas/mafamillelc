@@ -1,463 +1,91 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { createInitialRounds } from '@/data/defaultRounds';
-
-const STORAGE_KEY = 'famille-or-state-v2';
-const INITIAL_TIMER = 20;
-
-function createInitialState() {
-  return {
-    rounds: createInitialRounds(),
-    scores: { teamA: 0, teamB: 0 },
-    teamNames: { A: 'Equipe A', B: 'Equipe B' },
-    currentRoundIndex: 0,
-    errors: { A: 0, B: 0 },
-    buzzedTeam: null,
-    ownerTeam: null,
-    activeTeam: null,
-    stealMode: false,
-    phase: 'normal',
-    timerSeconds: INITIAL_TIMER,
-    timerEndsAt: null,
-    isEditMode: false,
-    events: { buzz: null, error: null, roundWin: null, gameWin: null },
-  };
-}
-
-function loadState() {
-  return createInitialState();
-}
-
-function getOtherTeam(team) {
-  return team === 'A' ? 'B' : 'A';
-}
-
-function getTimerSeconds(state, now = Date.now()) {
-  if (!state.timerEndsAt) return state.timerSeconds;
-  const remaining = Math.ceil((state.timerEndsAt - now) / 1000);
-  return Math.max(0, remaining);
-}
+import { getTimerSeconds, revealedTotal } from '../game/engine.js';
+import { createGameStore } from '../game/store.js';
 
 const GameContext = createContext(null);
 
 export function GameProvider({ children }) {
-  const [state, setState] = useState(loadState);
-  const [now, setNow] = useState(() => Date.now());
+  const [snapshot, setSnapshot] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [now, setNow] = useState(Date.now);
+  const [store, setStore] = useState(null);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state]);
-
-  useEffect(() => {
-    function onStorage(event) {
-      if (event.key !== STORAGE_KEY || !event.newValue) return;
-      try {
-        setState(JSON.parse(event.newValue));
-      } catch {
-        // ignore malformed storage value
-      }
-    }
-
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+    const instance = createGameStore({
+      // Access can throw in private or restricted browsing; the store catches it.
+      storage: { getItem: (key) => window.localStorage.getItem(key),
+        setItem: (key, value) => window.localStorage.setItem(key, value) },
+      locks: navigator.locks,
+      canWrite: window.location.pathname.replace(/\/$/, '') === '/control',
+      subscribeStorage(callback) {
+        window.addEventListener('storage', callback);
+        return () => window.removeEventListener('storage', callback);
+      },
+      onChange: setSnapshot,
+    });
+    setStore(instance);
+    setSnapshot(instance.getSnapshot());
+    return () => instance.dispose();
   }, []);
 
   useEffect(() => {
-    if (!state.timerEndsAt) return undefined;
-
-    const interval = setInterval(() => {
-      setNow(Date.now());
+    const interval = window.setInterval(() => {
+      const at = Date.now();
+      setNow(at);
+      const latest = store?.getSnapshot().state;
+      if (window.location.pathname.replace(/\/$/, '') === '/control' && latest?.timerEndsAt != null && latest.timerEndsAt <= at) {
+        void store.dispatch({ type: 'expireTimer', deadline: latest.timerEndsAt });
+      }
     }, 200);
-
     return () => clearInterval(interval);
-  }, [state.timerEndsAt]);
+  }, [store]);
 
   useEffect(() => {
-    if (!state.timerEndsAt) return;
-    if (getTimerSeconds(state, now) > 0) return;
-    setState((previous) => {
-      if (!previous.timerEndsAt) return previous;
-      if (getTimerSeconds(previous, Date.now()) > 0) return previous;
-      return applyErrorState(previous, { at: Date.now(), restartTimer: true });
-    });
-  }, [state, now]);
+    const refresh = () => { store?.refresh(); setNow(Date.now()); };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, [store]);
 
+  const actions = useMemo(() => {
+    const roundActions = new Set(['setRoundIndex', 'toggleAnswer', 'awardRevealedToTeam', 'buzz', 'addError', 'resetErrors', 'resetBuzzer', 'resetCurrentRound', 'deleteCurrentRound', 'updateQuestion', 'updateAnswerText', 'updateAnswerPoints', 'addAnswer']);
+    const dispatch = (type, extra = {}) => store?.dispatch({ type, ...extra,
+      ...(['undo', 'resetGame', 'resetCurrentRound', 'deleteCurrentRound'].includes(type) ? { expectedRevision: snapshot?.revision } : {}),
+      ...(roundActions.has(type) ? { expectedRoundIndex: snapshot?.state.currentRoundIndex,
+        expectedRoundQuestion: snapshot?.state.rounds[snapshot.state.currentRoundIndex].question } : {}) });
+    const result = {};
+    for (const type of ['setRoundIndex', 'toggleAnswer', 'awardRevealedToTeam', 'buzz', 'setTimerDuration', 'setAutoError', 'setScreenMode', 'setShowFullscreenPrompt', 'updateQuestion']) result[type] = (value) => dispatch(type, { value });
+    for (const type of ['addError', 'resetErrors', 'resetBuzzer', 'startTimer', 'stopTimer', 'resetTimer', 'addAnswer', 'addRound', 'undo']) result[type] = () => dispatch(type);
+    for (const type of ['resetGame', 'resetCurrentRound', 'deleteCurrentRound']) result[type] = (confirmed = false) => dispatch(type, { confirmed: confirmed === true });
+    for (const type of ['setTeamName', 'setScore']) result[type] = (team, value) => dispatch(type, { team, value });
+    for (const type of ['updateAnswerText', 'updateAnswerPoints']) result[type] = (index, value) => dispatch(type, { index, value });
+    result.setIsEditMode = setIsEditMode;
+    result.exportSave = () => {
+      try {
+        const url = URL.createObjectURL(new Blob([store.exportSave()], { type: 'application/json' }));
+        const link = document.createElement('a');
+        link.href = url; link.download = 'ma-famille-lc-sauvegarde.json'; link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } catch { window.alert('Export impossible : le navigateur bloque l’accès au stockage.'); }
+    };
+    return result;
+  }, [store, snapshot]);
+
+  if (!snapshot) return null;
+  const state = { ...snapshot.state, isEditMode };
   const currentRound = state.rounds[state.currentRoundIndex];
-
-  const revealedTotal = useMemo(
-    () => currentRound.answers.filter((answer) => answer.revealed).reduce((sum, answer) => sum + answer.points, 0),
-    [currentRound.answers]
-  );
-
-  function updateCurrentRound(transformRound) {
-    setState((previous) => ({
-      ...previous,
-      rounds: previous.rounds.map((round, index) =>
-        index === previous.currentRoundIndex ? transformRound(round) : round
-      ),
-    }));
-  }
-
-  function clearTurn(previous) {
-    return {
-      ...previous,
-      errors: { A: 0, B: 0 },
-      buzzedTeam: null,
-      ownerTeam: null,
-      activeTeam: null,
-      stealMode: false,
-    };
-  }
-
-  function endTurn(previous) {
-    return {
-      ...clearTurn(previous),
-      timerSeconds: INITIAL_TIMER,
-      timerEndsAt: null,
-    };
-  }
-
-  function awardToTeam(previous, team, points) {
-    return {
-      ...previous,
-      scores: {
-        ...previous.scores,
-        [team === 'A' ? 'teamA' : 'teamB']: previous.scores[team === 'A' ? 'teamA' : 'teamB'] + points,
-      },
-    };
-  }
-
-  function awardAndEndTurn(previous, team, points, at = Date.now()) {
-    const withPoints = awardToTeam(previous, team, points);
-    const isLastRound = previous.currentRoundIndex === previous.rounds.length - 1;
-    const winnerTeam =
-      withPoints.scores.teamA === withPoints.scores.teamB
-        ? null
-        : withPoints.scores.teamA > withPoints.scores.teamB
-          ? 'A'
-          : 'B';
-    const withEvent = {
-      ...withPoints,
-      events: {
-        ...withPoints.events,
-        roundWin: { id: at, team, at },
-        gameWin: isLastRound
-          ? {
-              id: at,
-              team: winnerTeam,
-              at,
-            }
-          : withPoints.events.gameWin,
-      },
-    };
-    return endTurn(withEvent);
-  }
-
-  function applyErrorState(previous, { at = Date.now(), restartTimer = false } = {}) {
-    if (!previous.activeTeam) {
-      return {
-        ...previous,
-        timerSeconds: INITIAL_TIMER,
-        timerEndsAt: null,
-      };
-    }
-
-    const team = previous.activeTeam;
-    const nextErrors = {
-      ...previous.errors,
-      [team]: Math.min(3, previous.errors[team] + 1),
-    };
-
-    let next = {
-      ...previous,
-      errors: nextErrors,
-      events: {
-        ...previous.events,
-        error: { id: at, team, at },
-      },
-    };
-
-    if (!previous.stealMode && nextErrors[team] >= 3) {
-      const stealTeam = getOtherTeam(team);
-      next = {
-        ...next,
-        buzzedTeam: stealTeam,
-        activeTeam: stealTeam,
-        stealMode: true,
-        errors: { ...next.errors, [stealTeam]: 0 },
-      };
-    } else if (previous.stealMode && team !== previous.ownerTeam) {
-      const round = previous.rounds[previous.currentRoundIndex];
-      const total = round.answers
-        .filter((answer) => answer.revealed)
-        .reduce((sum, answer) => sum + answer.points, 0);
-      return awardAndEndTurn(next, previous.ownerTeam, total, at);
-    }
-
-    if (restartTimer && next.activeTeam) {
-      return {
-        ...next,
-        timerSeconds: INITIAL_TIMER,
-        timerEndsAt: Date.now() + INITIAL_TIMER * 1000,
-      };
-    }
-
-    return next;
-  }
-
-  function withRestartedTimer(previous) {
-    if (!previous.activeTeam) return previous;
-    return {
-      ...previous,
-      timerSeconds: INITIAL_TIMER,
-      timerEndsAt: Date.now() + INITIAL_TIMER * 1000,
-    };
-  }
-
-  const actions = {
-    setRoundIndex(nextIndex) {
-      setState((previous) => ({
-        ...clearTurn(previous),
-        currentRoundIndex: nextIndex,
-        phase: 'normal',
-        timerSeconds: INITIAL_TIMER,
-        timerEndsAt: null,
-      }));
-    },
-
-    toggleAnswer(answerIndex) {
-      setState((previous) => {
-        const round = previous.rounds[previous.currentRoundIndex];
-        const answer = round.answers[answerIndex];
-        if (answer.revealed) return previous;
-        const nextRevealed = true;
-
-        const rounds = previous.rounds.map((item, index) => {
-          if (index !== previous.currentRoundIndex) return item;
-          return {
-            ...item,
-            answers: item.answers.map((itemAnswer, itemIndex) =>
-              itemIndex === answerIndex ? { ...itemAnswer, revealed: nextRevealed } : itemAnswer
-            ),
-          };
-        });
-
-        let next = { ...previous, rounds };
-        const updatedRound = rounds[previous.currentRoundIndex];
-        const total = updatedRound.answers
-          .filter((itemAnswer) => itemAnswer.revealed)
-          .reduce((sum, itemAnswer) => sum + itemAnswer.points, 0);
-        const allAnswersRevealed = updatedRound.answers.length > 0 && updatedRound.answers.every((item) => item.revealed);
-
-        if (previous.stealMode && previous.activeTeam && nextRevealed) {
-          next = awardAndEndTurn(next, previous.activeTeam, total);
-          return next;
-        }
-
-        if (nextRevealed && allAnswersRevealed && previous.activeTeam) {
-          next = awardAndEndTurn(next, previous.activeTeam, total);
-          return next;
-        }
-
-        if (nextRevealed) {
-          next = withRestartedTimer(next);
-        }
-
-        return next;
-      });
-    },
-
-    awardRevealedToTeam(team) {
-      setState((previous) => {
-        if (!previous.activeTeam || previous.activeTeam !== team) return previous;
-        const round = previous.rounds[previous.currentRoundIndex];
-        const total = round.answers
-          .filter((answer) => answer.revealed)
-          .reduce((sum, answer) => sum + answer.points, 0);
-        return awardAndEndTurn(previous, team, total);
-      });
-    },
-
-    addError() {
-      setState((previous) => applyErrorState(previous, { at: Date.now(), restartTimer: true }));
-    },
-
-    resetErrors() {
-      setState((previous) => ({ ...previous, errors: { A: 0, B: 0 } }));
-    },
-
-    buzz(team) {
-      setState((previous) => {
-        if (previous.buzzedTeam) return previous;
-        return {
-          ...previous,
-          buzzedTeam: team,
-          ownerTeam: team,
-          activeTeam: team,
-          stealMode: false,
-          events: {
-            ...previous.events,
-            buzz: { id: Date.now(), team, at: Date.now() },
-          },
-        };
-      });
-    },
-
-    resetBuzzer() {
-      setState((previous) => clearTurn(previous));
-    },
-
-    setPhase(phase) {
-      setState((previous) => ({ ...previous, phase }));
-    },
-
-    startTimer() {
-      setState((previous) => {
-        const current = getTimerSeconds(previous);
-        if (current <= 0 || previous.timerEndsAt) return previous;
-        return {
-          ...previous,
-          timerSeconds: current,
-          timerEndsAt: Date.now() + current * 1000,
-        };
-      });
-    },
-
-    stopTimer() {
-      setState((previous) => {
-        if (!previous.timerEndsAt) return previous;
-        return {
-          ...previous,
-          timerSeconds: getTimerSeconds(previous),
-          timerEndsAt: null,
-        };
-      });
-    },
-
-    resetTimer() {
-      setState((previous) => ({ ...previous, timerSeconds: INITIAL_TIMER, timerEndsAt: null }));
-    },
-
-    resetCurrentRound() {
-      setState((previous) => ({
-        ...clearTurn(previous),
-        rounds: previous.rounds.map((round, index) =>
-          index === previous.currentRoundIndex
-            ? { ...round, answers: round.answers.map((answer) => ({ ...answer, revealed: false })) }
-            : round
-        ),
-        phase: 'normal',
-        timerSeconds: INITIAL_TIMER,
-        timerEndsAt: null,
-      }));
-    },
-
-    resetGame() {
-      setState(createInitialState());
-    },
-
-    setIsEditMode(value) {
-      setState((previous) => ({ ...previous, isEditMode: value }));
-    },
-
-    setTeamName(team, value) {
-      setState((previous) => ({
-        ...previous,
-        teamNames: {
-          ...previous.teamNames,
-          [team]: value || `Equipe ${team}`,
-        },
-      }));
-    },
-
-    updateQuestion(value) {
-      updateCurrentRound((round) => ({ ...round, question: value }));
-    },
-
-    updateAnswerText(answerIndex, value) {
-      updateCurrentRound((round) => ({
-        ...round,
-        answers: round.answers.map((answer, index) =>
-          index === answerIndex ? { ...answer, text: value } : answer
-        ),
-      }));
-    },
-
-    updateAnswerPoints(answerIndex, value) {
-      updateCurrentRound((round) => ({
-        ...round,
-        answers: round.answers.map((answer, index) =>
-          index === answerIndex ? { ...answer, points: value } : answer
-        ),
-      }));
-    },
-
-    addAnswer() {
-      updateCurrentRound((round) => ({
-        ...round,
-        answers: [...round.answers, { text: 'Nouvelle reponse', points: 5, revealed: false }],
-      }));
-    },
-
-    addRound() {
-      setState((previous) => {
-        const rounds = [
-          ...previous.rounds,
-          {
-            question: 'Nouvelle manche - modifiez la question',
-            answers: [
-              { text: 'Reponse 1', points: 20, revealed: false },
-              { text: 'Reponse 2', points: 15, revealed: false },
-            ],
-          },
-        ];
-
-        return {
-          ...clearTurn(previous),
-          rounds,
-          currentRoundIndex: rounds.length - 1,
-          phase: 'normal',
-          timerSeconds: INITIAL_TIMER,
-          timerEndsAt: null,
-        };
-      });
-    },
-
-    deleteCurrentRound() {
-      setState((previous) => {
-        if (previous.rounds.length <= 1) return previous;
-
-        const rounds = previous.rounds.filter((_, index) => index !== previous.currentRoundIndex);
-        const nextIndex = Math.min(previous.currentRoundIndex, rounds.length - 1);
-
-        return {
-          ...clearTurn(previous),
-          rounds,
-          currentRoundIndex: nextIndex,
-          phase: 'normal',
-          timerSeconds: INITIAL_TIMER,
-          timerEndsAt: null,
-        };
-      });
-    },
-  };
-
-  const value = {
-    state,
-    actions,
-    currentRound,
-    revealedTotal,
-    timerSeconds: getTimerSeconds(state, now),
-    timerRunning: Boolean(state.timerEndsAt),
-  };
-
-  return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
+  return <GameContext.Provider value={{ state, actions, currentRound,
+    revealedTotal: revealedTotal(currentRound), timerSeconds: getTimerSeconds(state, now),
+    timerRunning: state.timerEndsAt !== null, storageIssue: snapshot.issue, storageBlocked: snapshot.blocked }}>
+    {children}
+  </GameContext.Provider>;
 }
 
 export function useGame() {
   const context = useContext(GameContext);
-  if (!context) {
-    throw new Error('useGame must be used inside GameProvider');
-  }
+  if (!context) throw new Error('useGame must be used inside GameProvider');
   return context;
 }

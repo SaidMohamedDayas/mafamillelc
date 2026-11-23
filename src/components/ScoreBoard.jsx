@@ -22,7 +22,7 @@ function TeamScoreCard({ label, score, onAward, revealedTotal, canAward }) {
         >
           {score}
         </motion.span>
-        <Button
+        {onAward && <Button
           variant="secondary"
           size="sm"
           onClick={onAward}
@@ -30,7 +30,7 @@ function TeamScoreCard({ label, score, onAward, revealedTotal, canAward }) {
           className="min-w-28 bg-[#0b1c4a] text-white hover:bg-[#132a68]"
         >
           + {revealedTotal} pts
-        </Button>
+        </Button>}
       </CardContent>
     </Card>
   );
@@ -42,14 +42,14 @@ export function ScoreBoard({ scores, onAwardTeam, revealedTotal, buzzedTeam }) {
       <TeamScoreCard
         label={scores.teamNameA ?? 'Equipe A'}
         score={scores.teamA}
-        onAward={() => onAwardTeam('A')}
+        onAward={onAwardTeam ? () => onAwardTeam('A') : undefined}
         revealedTotal={revealedTotal}
         canAward={buzzedTeam === 'A'}
       />
       <TeamScoreCard
         label={scores.teamNameB ?? 'Equipe B'}
         score={scores.teamB}
-        onAward={() => onAwardTeam('B')}
+        onAward={onAwardTeam ? () => onAwardTeam('B') : undefined}
         revealedTotal={revealedTotal}
         canAward={buzzedTeam === 'B'}
       />
